@@ -142,6 +142,8 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+// Deshabilitar persistencia para evitar problemas de CORS
+db.settings({ experimentalForceLongPolling: true, merge: true });
 
 // ── SYNC CON CALZARIO ─────────────────────────────────────
 let calzarioProductos = [];
