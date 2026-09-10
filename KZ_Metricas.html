@@ -143,42 +143,66 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 // Deshabilitar persistencia para evitar problemas de CORS
-db.settings({ experimentalForceLongPolling: true, merge: true });
 
-// ── SYNC CON CALZARIO ─────────────────────────────────────
-let calzarioProductos = [];
-let calzarioMovimientos = [];
 
-function sincronizarCalzario() {
+// ── SYNC CON CALZARIO VÍA REST API ───────────────────────
+const PROJECT_ID = 'calzario';
+const API_KEY = 'AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ';
+const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+async function firestoreGet(collection) {
+  const url = `${BASE_URL}/${collection}?key=${API_KEY}&pageSize=500`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return (json.documents || []).map(doc => {
+    const fields = doc.fields || {};
+    const parsed = {};
+    Object.keys(fields).forEach(k => {
+      const v = fields[k];
+      if (v.stringValue !== undefined) parsed[k] = v.stringValue;
+      else if (v.integerValue !== undefined) parsed[k] = parseInt(v.integerValue);
+      else if (v.doubleValue !== undefined) parsed[k] = parseFloat(v.doubleValue);
+      else if (v.booleanValue !== undefined) parsed[k] = v.booleanValue;
+      else if (v.mapValue) {
+        const inner = {};
+        Object.keys(v.mapValue.fields || {}).forEach(mk => {
+          const mv = v.mapValue.fields[mk];
+          if (mv.integerValue !== undefined) inner[mk] = parseInt(mv.integerValue);
+          else if (mv.doubleValue !== undefined) inner[mk] = parseFloat(mv.doubleValue);
+          else if (mv.stringValue !== undefined) inner[mk] = mv.stringValue;
+        });
+        parsed[k] = inner;
+      }
+    });
+    return parsed;
+  });
+}
+
+async function sincronizarCalzario() {
   const syncEl = document.getElementById('sync-status');
   if (syncEl) syncEl.textContent = '⏳ Sincronizando...';
 
-  // Leer productos
-  db.collection('productos').get().then(snap => {
-    calzarioProductos = snap.docs.map(d => d.data());
+  try {
+    const [productos, movimientos] = await Promise.all([
+      firestoreGet('productos'),
+      firestoreGet('movimientos')
+    ]);
 
-    // Leer movimientos
-    return db.collection('movimientos').orderBy('ts', 'desc').limit(500).get();
-  }).then(snap => {
-    calzarioMovimientos = snap.docs.map(d => d.data());
-
-    // Calcular métricas desde Calzario
-    const mesActualNum = mesActual;
-    const anioActualNum = anioActual;
-
-    // Pares en inventario
     const TALLAS = [28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45];
     let stockTotal = 0;
     let patrimonio = 0;
-    calzarioProductos.forEach(p => {
+    productos.forEach(p => {
       if (!p.tallas) return;
       const pares = TALLAS.reduce((a,t) => a + (parseInt(p.tallas[t] || p.tallas[String(t)] || 0)), 0);
       stockTotal += pares;
       patrimonio += pares * (parseFloat(p.costo) || 0);
     });
 
-    // Ventas del mes actual
-    const ventasMes = calzarioMovimientos.filter(m => {
+    const mesActualNum = mesActual;
+    const anioActualNum = anioActual;
+
+    const ventasMes = movimientos.filter(m => {
       if (m.tipo !== 'venta') return false;
       if (!m.fecha) return false;
       const partes = m.fecha.split('/');
@@ -193,7 +217,6 @@ function sincronizarCalzario() {
     const pedidosMes = ventasMes.length;
     const clientesMes = [...new Set(ventasMes.map(m => m.usuario).filter(Boolean))].length;
 
-    // Actualizar campos de datos con valores de Calzario
     const setVal = (id, val) => {
       const el = document.getElementById(id);
       if (el && val > 0) el.value = val;
@@ -201,24 +224,22 @@ function sincronizarCalzario() {
 
     setVal('i-pares', paresMes);
     setVal('i-pedidos', pedidosMes);
-    setVal('i-clientes', clientesMes || calzarioProductos.length > 0 ? clientesMes : 0);
+    setVal('i-clientes', clientesMes);
     setVal('i-stock', stockTotal);
-    if (ingresosMes > 0) setVal('i-facturacion', ingresosMes);
-    if (ingresosMes > 0) setVal('i-mayor', ingresosMes);
+    if (ingresosMes > 0) { setVal('i-facturacion', ingresosMes); setVal('i-mayor', ingresosMes); }
 
-    // Actualizar KPIs de inventario visibles
     document.getElementById('sync-pares-inv').textContent = stockTotal + ' pares';
     document.getElementById('sync-patrimonio').textContent = fmt(patrimonio);
-    document.getElementById('sync-ventas-mes').textContent = paresMes + ' pares vendidos este mes';
-    document.getElementById('sync-ingresos-mes').textContent = ingresosMes > 0 ? fmt(ingresosMes) : '(sin precio registrado)';
+    document.getElementById('sync-ventas-mes').textContent = paresMes + ' pares · ' + pedidosMes + ' pedidos';
+    document.getElementById('sync-ingresos-mes').textContent = ingresosMes > 0 ? fmt(ingresosMes) : '(registra precios en Calzario)';
 
-    if (syncEl) syncEl.textContent = '✅ Sincronizado con Calzario';
+    if (syncEl) syncEl.textContent = '✅ Sincronizado · ' + productos.length + ' refs · ' + movimientos.length + ' movimientos';
     renderDashboard();
 
-  }).catch(e => {
+  } catch(e) {
     console.error('Error sync:', e);
-    if (syncEl) syncEl.textContent = '❌ Error de conexión';
-  });
+    if (syncEl) syncEl.textContent = '❌ Error: ' + e.message;
+  }
 }
 </script>
 </head>
