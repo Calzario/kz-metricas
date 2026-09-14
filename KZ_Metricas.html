@@ -151,11 +151,21 @@ const API_KEY = 'AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ';
 const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
 async function firestoreGet(collection) {
-  const url = `${BASE_URL}/${collection}?key=${API_KEY}&pageSize=500`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  return (json.documents || []).map(doc => {
+  let allDocs = [];
+  let pageToken = null;
+  
+  do {
+    let url = `${BASE_URL}/${collection}?key=${API_KEY}&pageSize=100`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const docs = (json.documents || []);
+    allDocs = allDocs.concat(docs);
+    pageToken = json.nextPageToken || null;
+  } while (pageToken);
+
+  return allDocs.map(doc => {
     const fields = doc.fields || {};
     const parsed = {};
     Object.keys(fields).forEach(k => {
