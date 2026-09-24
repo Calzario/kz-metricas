@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>KZ Métricas — Panel Empresarial</title>
+<style>
+:root {
+  --bg: #0a0a0c;
+  --surface: #111115;
+  --card: #18181e;
+  --card2: #1f1f27;
+  --card3: #26262f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #eeedf0;
+  --text2: #8e8d96;
+  --text3: #4a4952;
+  --green: #00c27a;
+  --green-bg: rgba(0,194,122,0.1);
+  --green-border: rgba(0,194,122,0.2);
+  --green-text: #00e88f;
+  --amber: #f0a500;
+  --amber-bg: rgba(240,165,0,0.1);
+  --amber-text: #ffbe1a;
+  --red: #e04444;
+  --red-bg: rgba(224,68,68,0.1);
+  --red-text: #ff6060;
+  --blue: #3d7fff;
+  --blue-bg: rgba(61,127,255,0.1);
+  --blue-text: #6699ff;
+  --purple: #7c5cfc;
+  --purple-bg: rgba(124,92,252,0.1);
+  --purple-text: #a78bfa;
+  --orange: #f97316;
+  --orange-bg: rgba(249,115,22,0.1);
+  --orange-text: #fb923c;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+body { padding-bottom: 90px; }
+
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 18px; position: sticky; top: 0; z-index: 100; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; }
+.logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub { font-size: 11px; color: var(--text2); }
+.month-sel { background: var(--card2); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 6px 10px; color: var(--text); font-size: 12px; font-family: var(--font); outline: none; }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom,0); }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0 8px; cursor: pointer; border: none; background: none; color: var(--text3); font-size: 9px; font-family: var(--font); }
+.nav-btn svg { width: 20px; height: 20px; stroke: currentColor; }
+.nav-btn.active { color: var(--purple-text); }
+
+.section { display: none; padding: 14px 14px 0; }
+.section.active { display: block; }
+.sec-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 16px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+.card-title { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; }
+.kpi.full { grid-column: 1/-1; }
+.kpi .kl { font-size: 11px; color: var(--text2); font-weight: 500; margin-bottom: 5px; }
+.kpi .kv { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
+.kpi .ks { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.kpi.green { background: var(--green-bg); border-color: var(--green-border); }
+.kpi.green .kv { color: var(--green-text); }
+.kpi.amber { background: var(--amber-bg); border-color: rgba(240,165,0,0.2); }
+.kpi.amber .kv { color: var(--amber-text); }
+.kpi.red { background: var(--red-bg); border-color: rgba(224,68,68,0.2); }
+.kpi.red .kv { color: var(--red-text); }
+.kpi.purple { background: var(--purple-bg); border-color: rgba(124,92,252,0.2); }
+.kpi.purple .kv { color: var(--purple-text); }
+.kpi.blue { background: var(--blue-bg); border-color: rgba(61,127,255,0.2); }
+.kpi.blue .kv { color: var(--blue-text); }
+.kpi.orange { background: var(--orange-bg); border-color: rgba(249,115,22,0.2); }
+.kpi.orange .kv { color: var(--orange-text); }
+
+.trend { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 99px; }
+.trend.up { background: var(--green-bg); color: var(--green-text); }
+.trend.down { background: var(--red-bg); color: var(--red-text); }
+.trend.neutral { background: var(--card2); color: var(--text2); }
+
+.progress-bar { height: 7px; background: var(--card2); border-radius: 99px; overflow: hidden; margin: 8px 0 4px; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+.metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.metric-row:last-child { border-bottom: none; }
+.metric-row .ml { font-size: 13px; color: var(--text2); }
+.metric-row .mr { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.form-group { margin-bottom: 10px; }
+.form-label { font-size: 12px; color: var(--text2); font-weight: 500; margin-bottom: 5px; display: block; }
+.form-input { width: 100%; background: var(--card2); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 11px 13px; color: var(--text); font-size: 14px; font-family: var(--font); outline: none; -webkit-appearance: none; transition: border-color 0.15s; }
+.form-input:focus { border-color: var(--purple); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-primary { width: 100%; background: var(--purple); color: #fff; border: none; border-radius: var(--radius-sm); padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--font); margin-top: 4px; }
+.btn-primary:active { opacity: 0.8; }
+.btn-secondary { width: 100%; background: var(--card2); border: 1px solid var(--border2); color: var(--text2); border-radius: var(--radius-sm); padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); margin-top: 6px; }
+
+.alert-box { border-radius: var(--radius-sm); padding: 10px 13px; font-size: 13px; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.alert-box.red { background: var(--red-bg); color: var(--red-text); border: 1px solid rgba(224,68,68,0.2); }
+.alert-box.green { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+.alert-box.amber { background: var(--amber-bg); color: var(--amber-text); border: 1px solid rgba(240,165,0,0.2); }
+
+.formula-box { background: var(--card2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12px; color: var(--text2); margin-top: 8px; border-left: 3px solid var(--purple); }
+.formula-box strong { color: var(--purple-text); }
+
+.tab-row { display: flex; gap: 6px; margin-bottom: 12px; }
+.tab { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card2); color: var(--text2); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
+.tab.active { background: var(--purple-bg); border-color: rgba(124,92,252,0.3); color: var(--purple-text); }
+
+.history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.history-item:last-child { border-bottom: none; }
+.history-month { font-size: 13px; font-weight: 600; color: var(--text); }
+.history-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.history-val { font-size: 14px; font-weight: 700; }
+
+.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; z-index: 999; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+.badge.green { background: var(--green-bg); color: var(--green-text); }
+.badge.red { background: var(--red-bg); color: var(--red-text); }
+.badge.amber { background: var(--amber-bg); color: var(--amber-text); }
+</style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ",
+  authDomain: "calzario.firebaseapp.com",
+  projectId: "calzario",
+  storageBucket: "calzario.firebasestorage.app",
+  messagingSenderId: "72546170086",
+  appId: "1:72546170086:web:6243c9f7b4fa48beb27727"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// Deshabilitar persistencia para evitar problemas de CORS
+
+
+// ── SYNC CON CALZARIO VÍA REST API ───────────────────────
+const PROJECT_ID = 'calzario';
+const API_KEY = 'AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ';
+const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+async function firestoreGet(collection) {
+  let allDocs = [];
+  let pageToken = null;
+  
+  do {
+    let url = `${BASE_URL}/${collection}?key=${API_KEY}&pageSize=100`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const docs = (json.documents || []);
+    allDocs = allDocs.concat(docs);
+    pageToken = json.nextPageToken || null;
+  } while (pageToken);
+
+  return allDocs.map(doc => {
+    const fields = doc.fields || {};
+    const parsed = {};
+    Object.keys(fields).forEach(k => {
+      const v = fields[k];
+      if (v.stringValue !== undefined) parsed[k] = v.stringValue;
+      else if (v.integerValue !== undefined) parsed[k] = parseInt(v.integerValue);
+      else if (v.doubleValue !== undefined) parsed[k] = parseFloat(v.doubleValue);
+      else if (v.booleanValue !== undefined) parsed[k] = v.booleanValue;
+      else if (v.mapValue) {
+        const inner = {};
+        Object.keys(v.mapValue.fields || {}).forEach(mk => {
+          const mv = v.mapValue.fields[mk];
+          if (mv.integerValue !== undefined) inner[mk] = parseInt(mv.integerValue);
+          else if (mv.doubleValue !== undefined) inner[mk] = parseFloat(mv.doubleValue);
+          else if (mv.stringValue !== undefined) inner[mk] = mv.stringValue;
+        });
+        parsed[k] = inner;
+      }
+    });
+    return parsed;
+  });
+}
+
+async function sincronizarCalzario() {
+  const syncEl = document.getElementById('sync-status');
+  if (syncEl) syncEl.textContent = '⏳ Sincronizando con Calzario...';
+
+  try {
+    const [productos, movimientos] = await Promise.all([
+      firestoreGet('productos'),
+      firestoreGet('movimientos')
+    ]);
+
+    const TALLAS = [28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45];
+
+    // ── INVENTARIO ─────────────────────────────────────────
+    let stockTotal = 0;
+    let patrimonio = 0;
+    let separadosTotal = 0;
+    let muestrasTotal = 0;
+    productos.forEach(p => {
+      if (!p.tallas) return;
+      const pares = TALLAS.reduce((a,t) => a + (parseInt(p.tallas[t] || p.tallas[String(t)] || 0)), 0);
+      stockTotal += pares;
+      patrimonio += pares * (parseFloat(p.costo) || 0);
+      // Separados
+      if (p.separados) {
+        Object.values(p.separados).forEach(s => {
+          const arr = Array.isArray(s) ? s : (s && s.cantidad > 0 ? [s] : []);
+          arr.forEach(x => separadosTotal += (x.cantidad || 0));
+        });
+      }
+      // Muestras activas
+      if (p.muestras) muestrasTotal += p.muestras.filter(m => m.activa !== false).length;
+    });
+
+    // ── VENTAS DEL MES ─────────────────────────────────────
+    const mesActualNum = mesActual;
+    const anioActualNum = anioActual;
+
+    const ventasMes = movimientos.filter(m => {
+      if (m.tipo !== 'venta') return false;
+      if (!m.fecha) return false;
+      const partes = m.fecha.split('/');
+      if (partes.length !== 3) return false;
+      return parseInt(partes[1]) - 1 === mesActualNum && parseInt(partes[2]) === anioActualNum;
+    });
+
+    const paresMes = ventasMes.reduce((a,m) => a + (m.pares || 0), 0);
+    const ingresosMes = ventasMes.reduce((a,m) => a + (m.precioTotal || 0), 0);
+    const pedidosMes = ventasMes.length;
+    const clientesUnicos = [...new Set(ventasMes.map(m => m.usuario || m.cliente).filter(Boolean))];
+    const clientesMes = clientesUnicos.length;
+
+    // ── MAYOR vs DETAL ─────────────────────────────────────
+    // Si precio/par > precio mayor del modelo + 20k = detal
+    let paresMayor = 0, paresDetal = 0, ingresosMayor = 0, ingresosDetal = 0;
+    ventasMes.forEach(m => {
+      if (!m.precioTotal || !m.pares) return;
+      const prod = productos.find(p => p.codigo === m.codigo);
+      const precioMayorModelo = prod ? (parseFloat(prod.precio) || 0) : 0;
+      const precioPorParVenta = Math.round(m.precioTotal / m.pares);
+      const esDetal = precioMayorModelo > 0 && precioPorParVenta >= (precioMayorModelo + 20000);
+      if (esDetal) { paresDetal += m.pares; ingresosDetal += m.precioTotal; }
+      else { paresMayor += m.pares; ingresosMayor += m.precioTotal; }
+    });
+    const totalVentasPares = paresMayor + paresDetal || 1;
+
+    // ── VELOCIDAD DE ROTACIÓN ─────────────────────────────
+    const diasMes = new Date().getDate(); // días transcurridos del mes
+    const paresDiarios = diasMes > 0 ? (paresMes / diasMes) : 0;
+    const diasParaAgotar = paresDiarios > 0 ? Math.round(stockTotal / paresDiarios) : 0;
+
+    // ── MEJOR MODELO DEL MES ──────────────────────────────
+    const porModelo = {};
+    ventasMes.forEach(m => {
+      if (!m.codigo) return;
+      if (!porModelo[m.codigo]) porModelo[m.codigo] = { nombre: m.nombre || m.codigo, pares: 0, ingresos: 0 };
+      porModelo[m.codigo].pares += m.pares || 0;
+      porModelo[m.codigo].ingresos += m.precioTotal || 0;
+    });
+    const mejorModelo = Object.values(porModelo).sort((a,b) => b.pares - a.pares)[0];
+
+    // ── MEJOR VENDEDOR DEL MES ────────────────────────────
+    const porVendedor = {};
+    ventasMes.forEach(m => {
+      const v = m.usuarioNombre || m.usuario || 'Sin identificar';
+      if (!porVendedor[v]) porVendedor[v] = 0;
+      porVendedor[v] += m.pares || 0;
+    });
+    const mejorVendedor = Object.entries(porVendedor).sort((a,b) => b[1]-a[1])[0];
+
+    // ── ACTUALIZAR CAMPOS ─────────────────────────────────
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val > 0) el.value = val;
+    };
+    setVal('i-pares', paresMes);
+    setVal('i-pedidos', pedidosMes);
+    setVal('i-clientes', clientesMes);
+    setVal('i-stock', stockTotal);
+    if (ingresosMes > 0) { setVal('i-facturacion', ingresosMes); setVal('i-mayor', ingresosMes); }
+
+    // ── ACTUALIZAR TARJETAS DE SYNC ───────────────────────
+    document.getElementById('sync-pares-inv').textContent = stockTotal + ' pares';
+    document.getElementById('sync-patrimonio').textContent = fmt(patrimonio);
+    document.getElementById('sync-ventas-mes').textContent = paresMes + ' pares · ' + pedidosMes + ' pedidos';
+    document.getElementById('sync-ingresos-mes').textContent = ingresosMes > 0 ? fmt(ingresosMes) : '(registra precios en Calzario)';
+
+    // ── TARJETAS ADICIONALES ──────────────────────────────
+    const extraEl = document.getElementById('sync-extra');
+    if (extraEl) {
+      extraEl.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">📌 Separados activos</div>
+            <div style="font-size:16px;font-weight:700;color:var(--amber-text);">${separadosTotal} pares</div>
+          </div>
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">👁 Muestras activas</div>
+            <div style="font-size:16px;font-weight:700;color:var(--blue-text);">${muestrasTotal}</div>
+          </div>
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">⚡ Pares/día promedio</div>
+            <div style="font-size:16px;font-weight:700;color:var(--purple-text);">${paresDiarios.toFixed(1)}</div>
+          </div>
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">📦 Días de stock</div>
+            <div style="font-size:16px;font-weight:700;color:${diasParaAgotar < 15 ? 'var(--red-text)' : diasParaAgotar < 30 ? 'var(--amber-text)' : 'var(--green-text)'};">${diasParaAgotar > 0 ? diasParaAgotar + ' días' : '—'}</div>
+          </div>
+          ${mejorModelo ? `
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;grid-column:1/-1;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">🏆 Modelo más vendido este mes</div>
+            <div style="font-size:13px;font-weight:700;color:var(--green-text);">${mejorModelo.nombre}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">${mejorModelo.pares} pares · ${mejorModelo.ingresos > 0 ? fmt(mejorModelo.ingresos) : 'sin precio'}</div>
+          </div>` : ''}
+          ${mejorVendedor ? `
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;grid-column:1/-1;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">👤 Vendedor top este mes</div>
+            <div style="font-size:13px;font-weight:700;color:var(--purple-text);">${mejorVendedor[0]}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">${mejorVendedor[1]} pares vendidos</div>
+          </div>` : ''}
+          ${paresMayor + paresDetal > 0 ? `
+          <div style="background:var(--card2);border-radius:var(--radius-sm);padding:12px;grid-column:1/-1;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">📊 Mayor vs Detal</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div style="text-align:center;background:var(--green-bg);border-radius:var(--radius-sm);padding:8px;">
+                <div style="font-size:10px;color:var(--green-text);">Al por mayor</div>
+                <div style="font-size:16px;font-weight:700;color:var(--green-text);">${Math.round(paresMayor/totalVentasPares*100)}%</div>
+                <div style="font-size:11px;color:var(--text3);">${paresMayor} pares</div>
+              </div>
+              <div style="text-align:center;background:var(--blue-bg);border-radius:var(--radius-sm);padding:8px;">
+                <div style="font-size:10px;color:var(--blue-text);">Al detal</div>
+                <div style="font-size:16px;font-weight:700;color:var(--blue-text);">${Math.round(paresDetal/totalVentasPares*100)}%</div>
+                <div style="font-size:11px;color:var(--text3);">${paresDetal} pares</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div style="font-size:11px;color:var(--text3);text-align:center;">Ingresos mayor:<br><strong style="color:var(--green-text);">${fmt(ingresosMayor)}</strong></div>
+              <div style="font-size:11px;color:var(--text3);text-align:center;">Ingresos detal:<br><strong style="color:var(--blue-text);">${fmt(ingresosDetal)}</strong></div>
+            </div>
+          </div>` : ''}
+        </div>`;
+    }
+
+    // ── ANALYTICS DE CLIENTES POR PAÍS ────────────────────
+    try {
+      const clientesSnap = await firestoreGet('clientes');
+      if (clientesSnap.length > 0) {
+        const porPais = {};
+        const porCiudad = {};
+        clientesSnap.forEach(c => {
+          const pais = c.pais || 'Sin especificar';
+          const ciudad = c.ciudad ? `${c.ciudad} (${pais})` : null;
+          porPais[pais] = (porPais[pais] || 0) + 1;
+          if (ciudad) porCiudad[ciudad] = (porCiudad[ciudad] || 0) + 1;
+        });
+        const totalClientes = clientesSnap.length;
+        const paisesOrdenados = Object.entries(porPais).sort((a,b) => b[1]-a[1]);
+        const ciudadesOrdenadas = Object.entries(porCiudad).sort((a,b) => b[1]-a[1]).slice(0,8);
+        const flags = { 'Colombia':'🇨🇴', 'Ecuador':'🇪🇨', 'Venezuela':'🇻🇪', 'Perú':'🇵🇪', 'Panamá':'🇵🇦', 'Chile':'🇨🇱', 'México':'🇲🇽' };
+
+        const geoEl = document.getElementById('clientes-geo-content');
+        const geoCard = document.getElementById('clientes-geo-card');
+        if (geoEl && geoCard) {
+          geoCard.style.display = 'block';
+          geoEl.innerHTML = `
+            <div style="margin-bottom:12px;">
+              <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Por país · ${totalClientes} clientes totales</div>
+              ${paisesOrdenados.map(([pais, n]) => {
+                const pct = Math.round(n/totalClientes*100);
+                return `<div style="margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                    <span style="color:var(--text);">${flags[pais]||'🌎'} ${pais}</span>
+                    <span style="color:var(--text2);font-weight:600;">${n} clientes · ${pct}%</span>
+                  </div>
+                  <div style="height:6px;background:var(--card2);border-radius:99px;overflow:hidden;">
+                    <div style="height:100%;border-radius:99px;background:var(--purple);width:${pct}%;"></div>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+            ${ciudadesOrdenadas.length > 0 ? `
+            <div style="padding-top:10px;border-top:0.5px solid var(--border);">
+              <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Top ciudades</div>
+              ${ciudadesOrdenadas.map(([ciudad, n]) => `
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border);">
+                  <span style="font-size:12px;color:var(--text2);">📍 ${ciudad}</span>
+                  <span style="font-size:12px;font-weight:700;color:var(--text);">${n}</span>
+                </div>`).join('')}
+            </div>` : ''}
+          `;
+        }
+      }
+    } catch(e) { console.log('Sin datos de clientes:', e.message); }
+
+    const hora = new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
+    if (syncEl) syncEl.textContent = `✅ Sincronizado a las ${hora} · ${productos.length} refs · ${movimientos.length} movs`;
+    renderDashboard();
+
+  } catch(e) {
+    console.error('Error sync:', e);
+    if (syncEl) syncEl.textContent = '❌ Error: ' + e.message;
+  }
+}
+</script>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="logo-text">⚽ KZ Métricas</div>
+      <div class="logo-sub">Panel empresarial</div>
+    </div>
+    <select class="month-sel" id="month-sel" onchange="cambiarMes()">
+    </select>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="sec-dashboard" class="section active">
+  <div class="sec-title">Resumen</div>
+
+  <div class="card" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Calzario — Sincronización</div>
+        <div style="font-size:11px;color:var(--text3);" id="sync-status">Sincronizando...</div>
+      </div>
+      <button onclick="sincronizarCalzario()" style="background:var(--purple);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">🔄 Sincronizar ahora</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+      <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">Stock en bodega</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green-text);" id="sync-pares-inv">—</div>
+      </div>
+      <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">Patrimonio</div>
+        <div style="font-size:15px;font-weight:700;color:var(--amber-text);" id="sync-patrimonio">—</div>
+      </div>
+      <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">Ventas del mes</div>
+        <div style="font-size:15px;font-weight:700;color:var(--purple-text);" id="sync-ventas-mes">—</div>
+      </div>
+      <div style="background:var(--card2);border-radius:var(--radius-sm);padding:10px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">Ingresos del mes</div>
+        <div style="font-size:15px;font-weight:700;color:var(--blue-text);" id="sync-ingresos-mes">—</div>
+      </div>
+    </div>
+    <div id="sync-extra"></div>
+  </div>
+
+  <div id="alertas-container"></div>
+
+  <div class="card" id="clientes-geo-card" style="display:none;margin-bottom:10px;">
+    <div class="card-title">🌎 Clientes por país y ciudad</div>
+    <div id="clientes-geo-content"></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi green full">
+      <div class="kl">Beneficio neto</div>
+      <div class="kv" id="d-beneficio">$0</div>
+      <div class="ks" id="d-beneficio-sub">0% de rentabilidad</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kl">Facturación</div>
+      <div class="kv" id="d-facturacion">$0</div>
+      <div class="ks">Ingresos brutos</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kl">Clientes activos</div>
+      <div class="kv" id="d-clientes">0</div>
+      <div class="ks">Compraron este mes</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kl">Ticket promedio</div>
+      <div class="kv" id="d-ticket">$0</div>
+      <div class="ks">Por pedido</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kl">Pares vendidos</div>
+      <div class="kv" id="d-pares">0</div>
+      <div class="ks">Este mes</div>
+    </div>
+    <div class="kpi">
+      <div class="kl">Margen promedio/par</div>
+      <div class="kv" id="d-margen">$0</div>
+      <div class="ks">Ganancia por par</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Meta mensual de beneficio</div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">
+      <span id="meta-label">Meta: $0</span>
+      <span id="meta-pct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="meta-bar" style="width:0%;background:var(--purple);"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="meta-faltante">Ingresa tus datos para ver el progreso</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Números clave calculados</div>
+    <div class="metric-row">
+      <span class="ml">Punto de equilibrio</span>
+      <span class="mr" id="d-equilibrio">— pares/mes</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">Tasa de recompra</span>
+      <span class="mr" id="d-recompra">—%</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">Costo adquisición cliente (CAC)</span>
+      <span class="mr" id="d-cac">$—</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">ROAS</span>
+      <span class="mr" id="d-roas">—x</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">Tasa de conversión leads</span>
+      <span class="mr" id="d-conversion">—%</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">% Gastos fijos / Ventas</span>
+      <span class="mr" id="d-gastos-pct">—%</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">Valor de vida del cliente (LTV)</span>
+      <span class="mr" id="d-ltv">$—</span>
+    </div>
+    <div class="metric-row">
+      <span class="ml">Rotación de inventario</span>
+      <span class="mr" id="d-rotacion">—x</span>
+    </div>
+  </div>
+</div>
+
+<!-- INGRESAR DATOS -->
+<div id="sec-datos" class="section">
+  <div class="sec-title">Ingresar datos</div>
+
+  <div class="tab-row">
+    <div class="tab active" onclick="showTab('ventas-tab', this)">💰 Ventas</div>
+    <div class="tab" onclick="showTab('costos-tab', this)">📦 Costos</div>
+    <div class="tab" onclick="showTab('marketing-tab', this)">📱 Marketing</div>
+    <div class="tab" onclick="showTab('clientes-tab', this)">👥 Clientes</div>
+    <div class="tab" onclick="showTab('inventario-tab', this)">📊 Inventario</div>
+    <div class="tab" onclick="showTab('metas-tab', this)">🎯 Metas</div>
+  </div>
+
+  <div id="ventas-tab">
+    <div class="card">
+      <div class="card-title">Ventas del mes</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Facturación total ($COP)</label>
+          <input class="form-input" id="i-facturacion" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pares vendidos</label>
+          <input class="form-input" id="i-pares" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de pedidos</label>
+          <input class="form-input" id="i-pedidos" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clientes activos</label>
+          <input class="form-input" id="i-clientes" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ventas mayor ($)</label>
+          <input class="form-input" id="i-mayor" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ventas detal ($)</label>
+          <input class="form-input" id="i-detal" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="costos-tab" style="display:none;">
+    <div class="card">
+      <div class="card-title">Costos y gastos</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Costo de mercancía ($)</label>
+          <input class="form-input" id="i-costo-merc" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gastos en ads ($)</label>
+          <input class="form-input" id="i-ads" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pasadora / Envíos ($)</label>
+          <input class="form-input" id="i-envios" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transporte al centro ($)</label>
+          <input class="form-input" id="i-transporte" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Arriendo / Local ($)</label>
+          <input class="form-input" id="i-arriendo" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Otros gastos fijos ($)</label>
+          <input class="form-input" id="i-otros" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="marketing-tab" style="display:none;">
+    <div class="card">
+      <div class="card-title">Marketing y conversión</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Leads totales del mes</label>
+          <input class="form-input" id="i-leads" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clientes nuevos cerrados</label>
+          <input class="form-input" id="i-nuevos" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gasto total en ads ($)</label>
+          <input class="form-input" id="i-gasto-ads" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ingresos generados por ads ($)</label>
+          <input class="form-input" id="i-ingresos-ads" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="clientes-tab" style="display:none;">
+    <div class="card">
+      <div class="card-title">Métricas de clientes</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Total clientes históricos</label>
+          <input class="form-input" id="i-total-clientes" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clientes que repitieron</label>
+          <input class="form-input" id="i-repitieron" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Meses promedio relación</label>
+          <input class="form-input" id="i-meses-rel" type="number" inputmode="numeric" placeholder="6"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frecuencia compra/mes</label>
+          <input class="form-input" id="i-frecuencia" type="number" inputmode="decimal" placeholder="1"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="inventario-tab" style="display:none;">
+    <div class="card">
+      <div class="card-title">Inventario</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Pares en bodega ahora</label>
+          <input class="form-input" id="i-stock" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Costo promedio por par ($)</label>
+          <input class="form-input" id="i-costo-par" type="number" inputmode="numeric" placeholder="130000"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio venta promedio ($)</label>
+          <input class="form-input" id="i-precio-par" type="number" inputmode="numeric" placeholder="145000"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pares vendidos este mes</label>
+          <input class="form-input" id="i-pares-inv" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="metas-tab" style="display:none;">
+    <div class="card">
+      <div class="card-title">Metas y objetivos</div>
+      <div class="form-group">
+        <label class="form-label">Meta de beneficio mensual ($)</label>
+        <input class="form-input" id="i-meta-beneficio" type="number" inputmode="numeric" placeholder="8010000"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Meta de clientes activos</label>
+        <input class="form-input" id="i-meta-clientes" type="number" inputmode="numeric" placeholder="20"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Meta de pares mensuales</label>
+        <input class="form-input" id="i-meta-pares" type="number" inputmode="numeric" placeholder="534"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gastos personales mensuales ($)</label>
+        <input class="form-input" id="i-gastos-pers" type="number" inputmode="numeric" placeholder="3000000"/>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="guardarDatos()">Guardar datos del mes</button>
+  <button class="btn-secondary" onclick="cargarDatos()">Cargar datos guardados</button>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- ANÁLISIS -->
+<div id="sec-analisis" class="section">
+  <div class="sec-title">Análisis profundo</div>
+
+  <div class="card">
+    <div class="card-title">📊 Ventas por canal</div>
+    <div id="canal-chart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💡 Diagnóstico del negocio</div>
+    <div id="diagnostico-container"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧮 Fórmulas explicadas</div>
+    <div class="metric-row">
+      <span class="ml">Rentabilidad</span>
+      <span class="mr" id="a-rentabilidad">—%</span>
+    </div>
+    <div class="formula-box">
+      <strong>Fórmula:</strong> Beneficio neto / Facturación × 100<br/>
+      <strong>Meta:</strong> Mínimo 25% para tu negocio
+    </div>
+    <div class="metric-row" style="margin-top:10px;">
+      <span class="ml">Punto de equilibrio</span>
+      <span class="mr" id="a-equilibrio">— pares</span>
+    </div>
+    <div class="formula-box">
+      <strong>Fórmula:</strong> Gastos fijos / Margen por par<br/>
+      <strong>Meta:</strong> Cubrirlo en los primeros 15 días del mes
+    </div>
+    <div class="metric-row" style="margin-top:10px;">
+      <span class="ml">LTV del cliente</span>
+      <span class="mr" id="a-ltv">$—</span>
+    </div>
+    <div class="formula-box">
+      <strong>Fórmula:</strong> Ticket promedio × Frecuencia × Meses de relación<br/>
+      <strong>Meta:</strong> LTV debe ser mínimo 3× el CAC
+    </div>
+    <div class="metric-row" style="margin-top:10px;">
+      <span class="ml">Días de inventario</span>
+      <span class="mr" id="a-dias-inv">— días</span>
+    </div>
+    <div class="formula-box">
+      <strong>Fórmula:</strong> Pares en bodega / Pares vendidos por día<br/>
+      <strong>Meta:</strong> Mínimo 30 días de stock disponible
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIAL -->
+<div id="sec-historial" class="section">
+  <div class="sec-title">Historial mensual</div>
+
+  <div class="card">
+    <div class="card-title">📈 Evolución del negocio</div>
+    <div id="historial-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏆 Mejores meses</div>
+    <div id="mejores-list"></div>
+  </div>
+
+  <button class="btn-secondary" style="color:var(--red-text);border-color:var(--red-bg);" onclick="if(confirm('¿Borrar todo el historial?'))borrarTodo()">Borrar todo el historial</button>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- CRM CLIENTES -->
+<div id="sec-crm" class="section">
+  <div class="sec-title">Clientes</div>
+
+  <div class="card" style="margin-bottom:10px;">
+    <div class="card-title">📊 Canales de adquisición</div>
+    <div id="crm-canales"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px;">
+    <div class="card-title">🌎 Distribución geográfica</div>
+    <div id="crm-geo"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px;">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>👥 Todos los clientes</span>
+      <button onclick="abrirFormCliente()" style="background:var(--purple);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">+ Agregar</button>
+    </div>
+    <div class="form-group" style="margin-bottom:10px;">
+      <input class="form-input" id="crm-search" type="text" placeholder="Buscar cliente..." oninput="renderCRM()"/>
+    </div>
+    <div id="crm-lista"></div>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div id="modal-cliente" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;overflow-y:auto;">
+  <div style="background:var(--card);border-radius:var(--radius) var(--radius) 0 0;padding:20px;margin-top:60px;min-height:calc(100vh - 60px);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-size:17px;font-weight:700;" id="modal-cliente-title">Nuevo cliente</div>
+      <button onclick="cerrarFormCliente()" style="background:var(--card2);border:none;color:var(--text2);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--font);">✕ Cerrar</button>
+    </div>
+    <input type="hidden" id="cliente-edit-id"/>
+    <div class="form-group">
+      <label class="form-label">Nombre del cliente</label>
+      <input class="form-input" id="cliente-nombre" type="text" placeholder="Nombre completo o apodo"/>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">País</label>
+        <select class="form-input" id="cliente-pais">
+          <option value="">Selecciona</option>
+          <option value="Colombia">🇨🇴 Colombia</option>
+          <option value="Ecuador">🇪🇨 Ecuador</option>
+          <option value="Venezuela">🇻🇪 Venezuela</option>
+          <option value="Perú">🇵🇪 Perú</option>
+          <option value="Panamá">🇵🇦 Panamá</option>
+          <option value="Chile">🇨🇱 Chile</option>
+          <option value="México">🇲🇽 México</option>
+          <option value="Brasil">🇧🇷 Brasil</option>
+          <option value="Otro">🌎 Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ciudad</label>
+        <input class="form-input" id="cliente-ciudad" type="text" placeholder="Ciudad"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">¿Por dónde llegó?</label>
+      <select class="form-input" id="cliente-fuente">
+        <option value="">Selecciona canal</option>
+        <option value="TikTok">🎵 TikTok</option>
+        <option value="TikTok Ads">🎵 TikTok Ads</option>
+        <option value="Facebook Ads">📘 Facebook Ads</option>
+        <option value="Instagram">📸 Instagram</option>
+        <option value="Instagram Ads">📸 Instagram Ads</option>
+        <option value="Recomendado">🤝 Recomendado</option>
+        <option value="WhatsApp">💬 WhatsApp directo</option>
+        <option value="Centro Cali">🏪 Centro de Cali</option>
+        <option value="Referido cliente">⭐ Referido de otro cliente</option>
+        <option value="Otro">🔗 Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de cliente</label>
+      <select class="form-input" id="cliente-tipo">
+        <option value="Revendedor">🏪 Revendedor</option>
+        <option value="Mayorista">📦 Mayorista</option>
+        <option value="Detal">👤 Detal</option>
+        <option value="Distribuidor">🌎 Distribuidor</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas (opcional)</label>
+      <input class="form-input" id="cliente-notas" type="text" placeholder="Ej: Paga contra entrega, pide cada mes..."/>
+    </div>
+    <button class="btn-primary" onclick="guardarClienteCRM()">Guardar cliente</button>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showSection('dashboard',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </button>
+  <button class="nav-btn" onclick="showSection('datos',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Ingresar
+  </button>
+  <button class="nav-btn" onclick="showSection('crm',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Clientes
+  </button>
+  <button class="nav-btn" onclick="showSection('analisis',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Análisis
+  </button>
+  <button class="nav-btn" onclick="showSection('historial',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    Historial
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let mesActual = new Date().getMonth();
+let anioActual = new Date().getFullYear();
+
+// ── INIT ──────────────────────────────────────────────────
+function initMonthSelector() {
+  const sel = document.getElementById('month-sel');
+  sel.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = MESES[i] + ' ' + anioActual;
+    if (i === mesActual) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function cambiarMes() {
+  mesActual = parseInt(document.getElementById('month-sel').value);
+  cargarDatos();
+  renderDashboard();
+}
+
+function getKey() { return `kz_met_${anioActual}_${mesActual}`; }
+
+function getData() {
+  try { return JSON.parse(localStorage.getItem(getKey()) || '{}'); } catch(e) { return {}; }
+}
+
+function fmt(n) {
+  if (!n || isNaN(n)) return '$0';
+  if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (Math.abs(n) >= 1000) return '$' + Math.round(n/1000) + 'K';
+  return '$' + Math.round(n).toLocaleString('es-CO');
+}
+
+function fmtNum(n) {
+  if (!n || isNaN(n)) return '0';
+  return Math.round(n).toLocaleString('es-CO');
+}
+
+function toast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color || 'var(--green)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── NAV ───────────────────────────────────────────────────
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'analisis') renderAnalisis();
+  if (id === 'historial') renderHistorial();
+  if (id === 'datos') cargarDatos();
+  if (id === 'crm') renderCRM();
+}
+
+// ── CRM ───────────────────────────────────────────────────
+const FUENTES_EMOJI = {
+  'TikTok':'🎵','TikTok Ads':'🎵','Facebook Ads':'📘','Instagram':'📸',
+  'Instagram Ads':'📸','Recomendado':'🤝','WhatsApp':'💬',
+  'Centro Cali':'🏪','Referido cliente':'⭐','Otro':'🔗'
+};
+const FLAGS = {'Colombia':'🇨🇴','Ecuador':'🇪🇨','Venezuela':'🇻🇪','Perú':'🇵🇪','Panamá':'🇵🇦','Chile':'🇨🇱','México':'🇲🇽','Brasil':'🇧🇷'};
+
+let _crmClientes = [];
+
+async function cargarClientesCRM() {
+  try {
+    const snap = await firestoreGetCRM('clientes');
+    _crmClientes = snap;
+    return snap;
+  } catch(e) { return []; }
+}
+
+async function firestoreGetCRM(collection) {
+  const PROJECT_ID = 'calzario';
+  const API_KEY = 'AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ';
+  const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+  let allDocs = [];
+  let pageToken = null;
+  do {
+    let url = `${BASE_URL}/${collection}?key=${API_KEY}&pageSize=100`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const docs = (json.documents || []);
+    allDocs = allDocs.concat(docs);
+    pageToken = json.nextPageToken || null;
+  } while (pageToken);
+  return allDocs.map(doc => {
+    const fields = doc.fields || {};
+    const parsed = { _id: doc.name.split('/').pop() };
+    Object.keys(fields).forEach(k => {
+      const v = fields[k];
+      if (v.stringValue !== undefined) parsed[k] = v.stringValue;
+      else if (v.integerValue !== undefined) parsed[k] = parseInt(v.integerValue);
+      else if (v.doubleValue !== undefined) parsed[k] = parseFloat(v.doubleValue);
+    });
+    return parsed;
+  });
+}
+
+async function guardarClienteCRM() {
+  const nombre = document.getElementById('cliente-nombre')?.value.trim();
+  if (!nombre) { alert('Escribe el nombre del cliente'); return; }
+  const pais = document.getElementById('cliente-pais')?.value || '';
+  const ciudad = document.getElementById('cliente-ciudad')?.value.trim() || '';
+  const fuente = document.getElementById('cliente-fuente')?.value || '';
+  const tipo = document.getElementById('cliente-tipo')?.value || 'Revendedor';
+  const notas = document.getElementById('cliente-notas')?.value.trim() || '';
+  const editId = document.getElementById('cliente-edit-id')?.value || '';
+
+  const PROJECT_ID = 'calzario';
+  const API_KEY = 'AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ';
+  const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+  const toField = v => v ? { stringValue: v } : { stringValue: '' };
+  const data = {
+    fields: {
+      nombre: toField(nombre), pais: toField(pais), ciudad: toField(ciudad),
+      fuente: toField(fuente), tipo: toField(tipo), notas: toField(notas),
+      fechaRegistro: toField(editId ? '' : new Date().toLocaleDateString('es-CO')),
+      ultimaCompra: toField(''), totalCompras: { integerValue: 0 }
+    }
+  };
+
+  try {
+    if (editId) {
+      await fetch(`${BASE_URL}/clientes/${editId}?key=${API_KEY}`, {
+        method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+    } else {
+      await fetch(`${BASE_URL}/clientes?key=${API_KEY}`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+      });
+    }
+    cerrarFormCliente();
+    await cargarClientesCRM();
+    renderCRM();
+    toast('Cliente guardado ✓');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function eliminarClienteCRM(id) {
+  if (!confirm('¿Eliminar este cliente?')) return;
+  const PROJECT_ID = 'calzario';
+  const API_KEY = 'AIzaSyBLfe8wR1nHbaFi2eJ0aMdsrzbTm1QQJbQ';
+  await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/clientes/${id}?key=${API_KEY}`, { method: 'DELETE' });
+  await cargarClientesCRM();
+  renderCRM();
+  toast('Cliente eliminado');
+}
+
+function abrirFormCliente(cliente) {
+  document.getElementById('modal-cliente').style.display = 'block';
+  document.getElementById('modal-cliente-title').textContent = cliente ? 'Editar cliente' : 'Nuevo cliente';
+  document.getElementById('cliente-edit-id').value = cliente?._id || '';
+  document.getElementById('cliente-nombre').value = cliente?.nombre || '';
+  document.getElementById('cliente-pais').value = cliente?.pais || '';
+  document.getElementById('cliente-ciudad').value = cliente?.ciudad || '';
+  document.getElementById('cliente-fuente').value = cliente?.fuente || '';
+  document.getElementById('cliente-tipo').value = cliente?.tipo || 'Revendedor';
+  document.getElementById('cliente-notas').value = cliente?.notas || '';
+}
+
+function cerrarFormCliente() {
+  document.getElementById('modal-cliente').style.display = 'none';
+}
+
+async function renderCRM() {
+  if (_crmClientes.length === 0) await cargarClientesCRM();
+  const query = document.getElementById('crm-search')?.value.toLowerCase() || '';
+  const clientes = _crmClientes.filter(c =>
+    !query || c.nombre?.toLowerCase().includes(query) ||
+    c.ciudad?.toLowerCase().includes(query) || c.pais?.toLowerCase().includes(query) ||
+    c.fuente?.toLowerCase().includes(query)
+  );
+
+  // ── CANALES ─────────────────────────────────────────
+  const porFuente = {};
+  _crmClientes.forEach(c => {
+    const f = c.fuente || 'Sin especificar';
+    porFuente[f] = (porFuente[f] || 0) + 1;
+  });
+  const totalF = _crmClientes.length || 1;
+  const fuentesOrdenadas = Object.entries(porFuente).sort((a,b) => b[1]-a[1]);
+
+  const canalesEl = document.getElementById('crm-canales');
+  if (canalesEl) {
+    if (fuentesOrdenadas.length === 0) {
+      canalesEl.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px 0;">Sin datos aún. Agrega clientes con su canal.</div>';
+    } else {
+      canalesEl.innerHTML = fuentesOrdenadas.map(([fuente, n]) => {
+        const pct = Math.round(n/totalF*100);
+        const color = fuente.includes('TikTok') ? 'var(--red-text)' : fuente.includes('Facebook') || fuente.includes('Instagram') ? 'var(--blue-text)' : fuente === 'Recomendado' || fuente.includes('Referido') ? 'var(--green-text)' : 'var(--purple-text)';
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text);">${FUENTES_EMOJI[fuente]||'🔗'} ${fuente}</span>
+            <span style="font-weight:700;color:${color};">${n} · ${pct}%</span>
+          </div>
+          <div style="height:7px;background:var(--card2);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;border-radius:99px;background:${color};width:${pct}%;transition:width 0.4s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── GEO ─────────────────────────────────────────────
+  const porPais = {};
+  const porCiudad = {};
+  _crmClientes.forEach(c => {
+    const p = c.pais || 'Sin especificar';
+    porPais[p] = (porPais[p] || 0) + 1;
+    if (c.ciudad) {
+      const key = `${c.ciudad}${c.pais ? ', ' + c.pais : ''}`;
+      porCiudad[key] = (porCiudad[key] || 0) + 1;
+    }
+  });
+  const paisesOrdenados = Object.entries(porPais).sort((a,b) => b[1]-a[1]);
+  const ciudadesOrdenadas = Object.entries(porCiudad).sort((a,b) => b[1]-a[1]).slice(0,6);
+
+  const geoEl = document.getElementById('crm-geo');
+  if (geoEl) {
+    geoEl.innerHTML = paisesOrdenados.map(([pais, n]) => {
+      const pct = Math.round(n/totalF*100);
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span style="color:var(--text);">${FLAGS[pais]||'🌎'} ${pais}</span>
+          <span style="font-weight:700;color:var(--purple-text);">${n} · ${pct}%</span>
+        </div>
+        <div style="height:6px;background:var(--card2);border-radius:99px;overflow:hidden;">
+          <div style="height:100%;border-radius:99px;background:var(--purple);width:${pct}%;"></div>
+        </div>
+      </div>`;
+    }).join('') + (ciudadesOrdenadas.length > 0 ? `
+      <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);">
+        <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">Top ciudades</div>
+        ${ciudadesOrdenadas.map(([ciudad, n]) => `
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--border);">
+            <span style="font-size:12px;color:var(--text2);">📍 ${ciudad}</span>
+            <span style="font-size:12px;font-weight:700;color:var(--text);">${n}</span>
+          </div>`).join('')}
+      </div>` : '');
+  }
+
+  // ── LISTA DE CLIENTES ─────────────────────────────
+  const listaEl = document.getElementById('crm-lista');
+  if (!listaEl) return;
+  if (clientes.length === 0) {
+    listaEl.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 0;">Sin clientes todavía. Toca + Agregar para registrar el primero.</div>';
+    return;
+  }
+  listaEl.innerHTML = clientes.map(c => `
+    <div style="padding:12px 0;border-bottom:0.5px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;color:var(--text);">${c.nombre || '—'}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;">
+            ${c.pais ? `<span style="background:var(--purple-bg);color:var(--purple-text);border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600;">${FLAGS[c.pais]||'🌎'} ${c.pais}</span>` : ''}
+            ${c.ciudad ? `<span style="background:var(--card2);color:var(--text2);border-radius:99px;padding:2px 8px;font-size:11px;">📍 ${c.ciudad}</span>` : ''}
+            ${c.fuente ? `<span style="background:var(--blue-bg);color:var(--blue-text);border-radius:99px;padding:2px 8px;font-size:11px;">${FUENTES_EMOJI[c.fuente]||'🔗'} ${c.fuente}</span>` : ''}
+            ${c.tipo ? `<span style="background:var(--green-bg);color:var(--green-text);border-radius:99px;padding:2px 8px;font-size:11px;">${c.tipo}</span>` : ''}
+          </div>
+          ${c.notas ? `<div style="font-size:11px;color:var(--text3);margin-top:4px;">💬 ${c.notas}</div>` : ''}
+          ${c.fechaRegistro ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;">📅 Registrado: ${c.fechaRegistro}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;margin-left:10px;flex-shrink:0;">
+          <button onclick="abrirFormCliente(${JSON.stringify(c).replace(/"/g,'&quot;')})" style="background:var(--card2);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--font);">✏️</button>
+          <button onclick="eliminarClienteCRM('${c._id}')" style="background:var(--red-bg);border:1px solid rgba(224,68,68,0.2);color:var(--red-text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--font);">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// Cargar clientes al iniciar
+cargarClientesCRM();
+
+function showTab(tabId, btn) {
+  ['ventas-tab','costos-tab','marketing-tab','clientes-tab','inventario-tab','metas-tab'].forEach(t => {
+    document.getElementById(t).style.display = 'none';
+  });
+  document.getElementById(tabId).style.display = 'block';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── GUARDAR / CARGAR ──────────────────────────────────────
+function guardarDatos() {
+  const d = {
+    facturacion: parseFloat(document.getElementById('i-facturacion').value) || 0,
+    pares: parseFloat(document.getElementById('i-pares').value) || 0,
+    pedidos: parseFloat(document.getElementById('i-pedidos').value) || 0,
+    clientes: parseFloat(document.getElementById('i-clientes').value) || 0,
+    mayor: parseFloat(document.getElementById('i-mayor').value) || 0,
+    detal: parseFloat(document.getElementById('i-detal').value) || 0,
+    costoMerc: parseFloat(document.getElementById('i-costo-merc').value) || 0,
+    ads: parseFloat(document.getElementById('i-ads').value) || 0,
+    envios: parseFloat(document.getElementById('i-envios').value) || 0,
+    transporte: parseFloat(document.getElementById('i-transporte').value) || 0,
+    arriendo: parseFloat(document.getElementById('i-arriendo').value) || 0,
+    otros: parseFloat(document.getElementById('i-otros').value) || 0,
+    leads: parseFloat(document.getElementById('i-leads').value) || 0,
+    nuevos: parseFloat(document.getElementById('i-nuevos').value) || 0,
+    gastoAds: parseFloat(document.getElementById('i-gasto-ads').value) || 0,
+    ingresosAds: parseFloat(document.getElementById('i-ingresos-ads').value) || 0,
+    totalClientes: parseFloat(document.getElementById('i-total-clientes').value) || 0,
+    repitieron: parseFloat(document.getElementById('i-repitieron').value) || 0,
+    mesesRel: parseFloat(document.getElementById('i-meses-rel').value) || 6,
+    frecuencia: parseFloat(document.getElementById('i-frecuencia').value) || 1,
+    stock: parseFloat(document.getElementById('i-stock').value) || 0,
+    costoPar: parseFloat(document.getElementById('i-costo-par').value) || 0,
+    precioPar: parseFloat(document.getElementById('i-precio-par').value) || 0,
+    paresInv: parseFloat(document.getElementById('i-pares-inv').value) || 0,
+    metaBeneficio: parseFloat(document.getElementById('i-meta-beneficio').value) || 8010000,
+    metaClientes: parseFloat(document.getElementById('i-meta-clientes').value) || 20,
+    metaPares: parseFloat(document.getElementById('i-meta-pares').value) || 534,
+    gastosPersonales: parseFloat(document.getElementById('i-gastos-pers').value) || 3000000,
+  };
+  localStorage.setItem(getKey(), JSON.stringify(d));
+  toast('Datos guardados ✓');
+  renderDashboard();
+}
+
+function cargarDatos() {
+  const d = getData();
+  const fields = {
+    'i-facturacion': d.facturacion, 'i-pares': d.pares, 'i-pedidos': d.pedidos,
+    'i-clientes': d.clientes, 'i-mayor': d.mayor, 'i-detal': d.detal,
+    'i-costo-merc': d.costoMerc, 'i-ads': d.ads, 'i-envios': d.envios,
+    'i-transporte': d.transporte, 'i-arriendo': d.arriendo, 'i-otros': d.otros,
+    'i-leads': d.leads, 'i-nuevos': d.nuevos, 'i-gasto-ads': d.gastoAds,
+    'i-ingresos-ads': d.ingresosAds, 'i-total-clientes': d.totalClientes,
+    'i-repitieron': d.repitieron, 'i-meses-rel': d.mesesRel, 'i-frecuencia': d.frecuencia,
+    'i-stock': d.stock, 'i-costo-par': d.costoPar, 'i-precio-par': d.precioPar,
+    'i-pares-inv': d.paresInv, 'i-meta-beneficio': d.metaBeneficio,
+    'i-meta-clientes': d.metaClientes, 'i-meta-pares': d.metaPares,
+    'i-gastos-pers': d.gastosPersonales,
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && val) el.value = val;
+  });
+}
+
+// ── CALCULAR MÉTRICAS ─────────────────────────────────────
+function calcular(d) {
+  const gastosOp = (d.ads||0) + (d.envios||0) + (d.transporte||0) + (d.arriendo||0) + (d.otros||0);
+  const gastosFijos = (d.arriendo||0) + (d.otros||0);
+  const beneficio = (d.facturacion||0) - (d.costoMerc||0) - gastosOp;
+  const rentabilidad = d.facturacion ? (beneficio / d.facturacion * 100) : 0;
+  const ticket = d.pedidos ? (d.facturacion / d.pedidos) : 0;
+  const margenPar = d.pares ? (beneficio / d.pares) : 0;
+  const margenBrutoPar = (d.precioPar||0) - (d.costoPar||0);
+  const equilibrio = margenBrutoPar > 0 ? Math.ceil(gastosFijos / margenBrutoPar) : 0;
+  const recompra = d.totalClientes ? (d.repitieron / d.totalClientes * 100) : 0;
+  const cac = d.nuevos ? (d.gastoAds / d.nuevos) : 0;
+  const roas = d.gastoAds ? (d.ingresosAds / d.gastoAds) : 0;
+  const conversion = d.leads ? (d.nuevos / d.leads * 100) : 0;
+  const gastosPct = d.facturacion ? (gastosOp / d.facturacion * 100) : 0;
+  const ltv = ticket * (d.frecuencia||1) * (d.mesesRel||6);
+  const rotacion = d.stock ? ((d.paresInv||d.pares||0) / d.stock) : 0;
+  const diasInv = (d.pares && d.pares > 0) ? Math.round(d.stock / (d.pares / 30)) : 0;
+  const patrimonio = (d.stock||0) * (d.costoPar||0);
+  return { gastosOp, gastosFijos, beneficio, rentabilidad, ticket, margenPar, margenBrutoPar, equilibrio, recompra, cac, roas, conversion, gastosPct, ltv, rotacion, diasInv, patrimonio };
+}
+
+// ── RENDER DASHBOARD ──────────────────────────────────────
+function renderDashboard() {
+  const d = getData();
+  const m = calcular(d);
+  const meta = d.metaBeneficio || 8010000;
+  const pct = meta > 0 ? Math.min(100, Math.round(m.beneficio / meta * 100)) : 0;
+  const barColor = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
+
+  document.getElementById('d-beneficio').textContent = fmt(m.beneficio);
+  document.getElementById('d-beneficio-sub').textContent = m.rentabilidad.toFixed(1) + '% de rentabilidad';
+  document.getElementById('d-facturacion').textContent = fmt(d.facturacion);
+  document.getElementById('d-clientes').textContent = fmtNum(d.clientes);
+  document.getElementById('d-ticket').textContent = fmt(m.ticket);
+  document.getElementById('d-pares').textContent = fmtNum(d.pares);
+  document.getElementById('d-margen').textContent = fmt(m.margenPar);
+
+  document.getElementById('meta-label').textContent = 'Meta: ' + fmt(meta);
+  document.getElementById('meta-pct').textContent = pct + '%';
+  document.getElementById('meta-bar').style.width = pct + '%';
+  document.getElementById('meta-bar').style.background = barColor;
+  document.getElementById('meta-faltante').textContent = m.beneficio >= meta
+    ? '✅ Meta alcanzada este mes'
+    : 'Faltan ' + fmt(meta - m.beneficio) + ' para la meta';
+
+  document.getElementById('d-equilibrio').innerHTML = m.equilibrio > 0 ? fmtNum(m.equilibrio) + ' pares/mes <span class="badge ' + (d.pares >= m.equilibrio ? 'green' : 'red') + '">' + (d.pares >= m.equilibrio ? '✓ OK' : '✗ No alcanzado') + '</span>' : '—';
+  document.getElementById('d-recompra').innerHTML = m.recompra > 0 ? m.recompra.toFixed(0) + '% <span class="badge ' + (m.recompra >= 60 ? 'green' : 'red') + '">' + (m.recompra >= 60 ? 'Bien' : 'Bajo') + '</span>' : '—';
+  document.getElementById('d-cac').textContent = m.cac > 0 ? fmt(m.cac) : '—';
+  document.getElementById('d-roas').innerHTML = m.roas > 0 ? m.roas.toFixed(1) + 'x <span class="badge ' + (m.roas >= 9 ? 'green' : 'red') + '">' + (m.roas >= 9 ? 'Rentable' : 'Bajo') + '</span>' : '—';
+  document.getElementById('d-conversion').innerHTML = m.conversion > 0 ? m.conversion.toFixed(0) + '% <span class="badge ' + (m.conversion >= 15 ? 'green' : 'red') + '">' + (m.conversion >= 15 ? 'OK' : 'Bajo') + '</span>' : '—';
+  document.getElementById('d-gastos-pct').innerHTML = m.gastosPct > 0 ? m.gastosPct.toFixed(0) + '% <span class="badge ' + (m.gastosPct <= 25 ? 'green' : 'red') + '">' + (m.gastosPct <= 25 ? 'Controlado' : 'Alto') + '</span>' : '—';
+  document.getElementById('d-ltv').textContent = m.ltv > 0 ? fmt(m.ltv) : '—';
+  document.getElementById('d-rotacion').innerHTML = m.rotacion > 0 ? m.rotacion.toFixed(1) + 'x <span class="badge ' + (m.rotacion >= 1 ? 'green' : 'amber') + '">' + (m.rotacion >= 1 ? 'Bien' : 'Lento') + '</span>' : '—';
+
+  renderAlertas(d, m);
+}
+
+function renderAlertas(d, m) {
+  const alertas = [];
+  if (d.facturacion && m.beneficio < 0) alertas.push({ tipo: 'red', msg: '🚨 Estás perdiendo dinero este mes. Tus gastos superan los ingresos.' });
+  if (d.pares && m.equilibrio > 0 && d.pares < m.equilibrio) alertas.push({ tipo: 'red', msg: '⚠️ No alcanzaste el punto de equilibrio. Vendiste ' + fmtNum(d.pares) + ' de ' + fmtNum(m.equilibrio) + ' pares necesarios.' });
+  if (m.recompra > 0 && m.recompra < 40) alertas.push({ tipo: 'red', msg: '⚠️ Tasa de recompra muy baja (' + m.recompra.toFixed(0) + '%). Los clientes no están volviendo.' });
+  if (m.roas > 0 && m.roas < 9) alertas.push({ tipo: 'amber', msg: '📱 ROAS bajo (' + m.roas.toFixed(1) + 'x). Los ads no están siendo rentables todavía.' });
+  if (m.gastosPct > 40) alertas.push({ tipo: 'red', msg: '💸 Gastos operativos muy altos (' + m.gastosPct.toFixed(0) + '% de las ventas). Revisa qué puedes reducir.' });
+  if (m.diasInv > 0 && m.diasInv < 15) alertas.push({ tipo: 'amber', msg: '📦 Inventario bajo. Solo tienes para ' + m.diasInv + ' días al ritmo actual.' });
+  if (m.conversion > 0 && m.conversion < 10) alertas.push({ tipo: 'amber', msg: '🎯 Tasa de conversión muy baja (' + m.conversion.toFixed(0) + '%). Revisa el proceso de cierre.' });
+  if (m.beneficio > 0 && m.rentabilidad >= 25) alertas.push({ tipo: 'green', msg: '✅ Rentabilidad saludable (' + m.rentabilidad.toFixed(0) + '%). El negocio va bien este mes.' });
+
+  const container = document.getElementById('alertas-container');
+  if (alertas.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = alertas.map(a => `<div class="alert-box ${a.tipo}">${a.msg}</div>`).join('');
+}
+
+// ── RENDER ANÁLISIS ───────────────────────────────────────
+function renderAnalisis() {
+  const d = getData();
+  const m = calcular(d);
+
+  document.getElementById('a-rentabilidad').textContent = m.rentabilidad.toFixed(1) + '%';
+  document.getElementById('a-equilibrio').textContent = m.equilibrio > 0 ? fmtNum(m.equilibrio) + ' pares' : '—';
+  document.getElementById('a-ltv').textContent = m.ltv > 0 ? fmt(m.ltv) : '—';
+  document.getElementById('a-dias-inv').textContent = m.diasInv > 0 ? m.diasInv + ' días' : '—';
+
+  // Canal chart
+  const total = (d.mayor||0) + (d.detal||0);
+  const mayorPct = total > 0 ? Math.round((d.mayor||0)/total*100) : 0;
+  const detalPct = 100 - mayorPct;
+  document.getElementById('canal-chart').innerHTML = total > 0 ? `
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">
+        <span>Por mayor <strong style="color:var(--purple-text);">${mayorPct}%</strong></span>
+        <span>${fmt(d.mayor)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${mayorPct}%;background:var(--purple);"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">
+        <span>Al detal <strong style="color:var(--blue-text);">${detalPct}%</strong></span>
+        <span>${fmt(d.detal)}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${detalPct}%;background:var(--blue);"></div></div>
+    </div>` : '<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px 0;">Ingresa datos de ventas para ver este análisis</div>';
+
+  // Diagnóstico
+  const diagnosticos = [];
+  if (!d.facturacion) { diagnosticos.push({ color: 'amber', msg: 'Ingresa los datos del mes para ver el diagnóstico completo.' }); }
+  else {
+    if (m.beneficio > 0) diagnosticos.push({ color: 'green', msg: `Generaste ${fmt(m.beneficio)} de beneficio neto con una rentabilidad del ${m.rentabilidad.toFixed(0)}%.` });
+    if (m.ticket > 0) diagnosticos.push({ color: m.ticket > 200000 ? 'green' : 'amber', msg: `Ticket promedio de ${fmt(m.ticket)} por pedido. ${m.ticket > 200000 ? 'Buen nivel para mayorista.' : 'Intenta subir el ticket con pedidos más grandes.'}` });
+    if (m.cac > 0 && m.ltv > 0) diagnosticos.push({ color: m.ltv > m.cac * 3 ? 'green' : 'red', msg: `Por cada ${fmt(m.cac)} que gastas en conseguir un cliente, ese cliente te genera ${fmt(m.ltv)} en su vida. ${m.ltv > m.cac * 3 ? 'Relación saludable.' : 'Necesitas bajar el CAC o aumentar el LTV.'}` });
+    if (m.equilibrio > 0) diagnosticos.push({ color: d.pares >= m.equilibrio ? 'green' : 'red', msg: `Tu punto de equilibrio es ${fmtNum(m.equilibrio)} pares/mes. ${d.pares >= m.equilibrio ? `Lo superaste con ${fmtNum(d.pares - m.equilibrio)} pares extra.` : `Te faltaron ${fmtNum(m.equilibrio - d.pares)} pares para cubrirlo.`}` });
+    if (m.gastosPct > 0) diagnosticos.push({ color: m.gastosPct <= 25 ? 'green' : 'red', msg: `Tus gastos operativos representan el ${m.gastosPct.toFixed(0)}% de las ventas. ${m.gastosPct <= 25 ? 'Bajo control.' : 'Demasiado alto. Revisa qué puedes reducir.'}` });
+  }
+  document.getElementById('diagnostico-container').innerHTML = diagnosticos.map(d => `<div class="alert-box ${d.color}" style="margin-bottom:8px;">${d.msg}</div>`).join('');
+}
+
+// ── RENDER HISTORIAL ──────────────────────────────────────
+function renderHistorial() {
+  const meses = [];
+  for (let a = anioActual; a >= anioActual - 1; a--) {
+    for (let m = 11; m >= 0; m--) {
+      const key = `kz_met_${a}_${m}`;
+      const data = localStorage.getItem(key);
+      if (data) {
+        const d = JSON.parse(data);
+        const calc = calcular(d);
+        meses.push({ mes: MESES[m], anio: a, d, calc });
+      }
+    }
+  }
+
+  const list = document.getElementById('historial-list');
+  if (meses.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px 0;">Sin historial todavía. Guarda datos de al menos un mes.</div>';
+  } else {
+    list.innerHTML = meses.map(item => `
+      <div class="history-item">
+        <div>
+          <div class="history-month">${item.mes} ${item.anio}</div>
+          <div class="history-sub">${fmtNum(item.d.pares)} pares · ${fmtNum(item.d.clientes)} clientes · ${item.calc.rentabilidad.toFixed(0)}% rentabilidad</div>
+        </div>
+        <div class="history-val" style="color:${item.calc.beneficio >= 0 ? 'var(--green-text)' : 'var(--red-text)'};">${fmt(item.calc.beneficio)}</div>
+      </div>`).join('');
+  }
+
+  const mejores = document.getElementById('mejores-list');
+  if (meses.length < 2) {
+    mejores.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px 0;">Necesitas al menos 2 meses de datos.</div>';
+  } else {
+    const sorted = [...meses].sort((a,b) => b.calc.beneficio - a.calc.beneficio).slice(0,3);
+    mejores.innerHTML = sorted.map((item, i) => `
+      <div class="history-item">
+        <div>
+          <div class="history-month">${['🥇','🥈','🥉'][i]} ${item.mes} ${item.anio}</div>
+          <div class="history-sub">${fmtNum(item.d.pares)} pares vendidos</div>
+        </div>
+        <div class="history-val" style="color:var(--amber-text);">${fmt(item.calc.beneficio)}</div>
+      </div>`).join('');
+  }
+}
+
+function borrarTodo() {
+  for (let a = anioActual; a >= anioActual - 2; a--) {
+    for (let m = 0; m < 12; m++) {
+      localStorage.removeItem(`kz_met_${a}_${m}`);
+    }
+  }
+  toast('Historial borrado');
+  renderDashboard();
+  renderHistorial();
+}
+
+// ── INIT ──────────────────────────────────────────────────
+initMonthSelector();
+renderDashboard();
+
+// Auto-sincronizar al abrir la app
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    sincronizarCalzario();
+  }, 1500); // Espera que Firebase cargue
+});
+</script>
+</body>
+</html>
